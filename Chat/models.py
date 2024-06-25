@@ -9,3 +9,9 @@ class Message(models.Model):
     author = models.ForeignKey(user, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def last_message(self, roomname):
+        return Message.objects.filter(related_chat__roomname=roomname)
+
+    def __str__(self):
+        return self.author.username
