@@ -81,6 +81,7 @@ CHANNEL_LAYERS = {
         # },
     },
 }
+# run redis in window use this link https://github.com/ServiceStack/redis-windows 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
