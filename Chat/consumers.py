@@ -5,6 +5,12 @@ from channels.generic.websocket import WebsocketConsumer
 
 
 class ChatConsumer(WebsocketConsumer):
+    
+    def new_message(self,message):
+        print(message)
+    def fetch_message(self):
+         pass
+    
     def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"] # info connection save in scope like request in api 
         self.room_group_name = f"chat_{self.room_name}"
@@ -15,6 +21,11 @@ class ChatConsumer(WebsocketConsumer):
         )
 
         self.accept()
+        
+    commends ={
+        "new_message":new_message,
+        "fetch_message":fetch_message
+    }
 
     def disconnect(self, close_code):
         # Leave room group
@@ -26,6 +37,9 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
+        commad = text_data_json["commad"]
+        self.commends[commad](self,message)
+
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
