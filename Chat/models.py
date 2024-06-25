@@ -10,8 +10,8 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     
-    def last_message(self, roomname):
-        return Message.objects.filter(related_chat__roomname=roomname)
+    def last_message(self):
+        return Message.objects.order_by("-timestamp").all()
 
     def __str__(self):
         return self.author.username
