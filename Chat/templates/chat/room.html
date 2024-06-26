@@ -22,10 +22,18 @@
             + roomName
             + '/'
         );
-
+        
+        chatSocket.onopen = function(e) {
+            chatSocket.send(JSON.stringify({
+                'commad':"fetch_message"
+            }));
+        }
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+            console.log(data)
+            for (let i=data["message"].length-1; i>=0;i--){
+                document.querySelector('#chat-log').value += (data['message'][i]['content'] + '\n');
+            }
         };
 
         chatSocket.onclose = function(e) {
