@@ -14,7 +14,7 @@
     <script src="{% static 'reconnecting-websocket.js' %}"></script>
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
-
+        var username = {{username}}
         const chatSocket = new ReconnectingWebSocket(
             'ws://'
             + window.location.host
@@ -52,7 +52,8 @@
             const message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
                 'message': message,
-                'commad':"new_message"
+                'commad':"new_message",
+                'username': username
             }));
             messageInputDom.value = '';
         };
