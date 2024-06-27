@@ -4,11 +4,26 @@ from django.shortcuts import render
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
 import json
+from django.contrib.auth.decorators import login_required
 
+from models import Chat
+
+@login_required(login_url='login')
 def index(request):
-    return render(request, "chat/index.html")
+    user = request.user
+    
+    chat_rooms = Chat.objects.filter(members = user)
+    print(chat_rooms)
+    context={
 
+        'chat_rooms' : chat_rooms
+    }
+    
+    
+    
+    return render(request, 'chat/index.html', context)
 
+@login_required(login_url='login')
 def room(request, room_name):
     username = request.user.username
     context = {
