@@ -5,21 +5,35 @@ from channels.generic.websocket import WebsocketConsumer
 from .serializers import MessageSerializer
 from .models import Message
 from rest_framework.renderers import JSONRenderer
+from django.contrib.auth import get_user_model
+
 
 class ChatConsumer(WebsocketConsumer):
     
-    def new_message(self,message):
-        print(message)
+    def new_message(self,data):
+        message = data['message']
+        username = data['username']
+        user = get_user_model().objects.filter(username=username).first()
+        message_object = Message.objects.create(author=user,content=message)
+        message = self.message_serializer(message_object)
+        message = eval(message)['content']
+        self.send_to_chat_message(message)
+        
     def fetch_message(self,data):
         query = Message.last_message(self)
         messge_json = self.message_serializer(query)
         content ={
-            "message":eval(messge_json)
+            "message":eval(messge_json),
+            "command":"fetch_message"
         } 
         self.chat_message(content)
      
     def message_serializer(self,query_set):
-        serialized = MessageSerializer(query_set,many=True)
+        if query_set.__class__.__name__ =='QuerySet':
+            bool_ = True
+        else:
+            bool_ =False
+        serialized = MessageSerializer(query_set,many=bool_)
         content = JSONRenderer().render(serialized.data)
         return content
     
@@ -48,14 +62,17 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from WebSocket
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json.get("message",None)
+        # message = text_data_json.get("message",None)
+        # username = text_data_json.get("username",None)
         commad = text_data_json["commad"]
-        self.commends[commad](self,message)
+        self.commends[commad](self,text_data_json)
 
     def send_to_chat_message(self,message):
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {"type": "chat_message", "message": message}
+            self.room_group_name, {"type": "chat_message",
+                                   "message": message,
+                                   'command':'new_message'}
         )
 
     # Receive message from room group
@@ -64,8 +81,9 @@ class ChatConsumer(WebsocketConsumer):
         """event = {
             "type": "chat_message",
             "message": message
+            "command": fetch or new message
         }
         """
-        message = event["message"]
+        # message = event["message"]
         # Send message to WebSocket
-        self.send(text_data=json.dumps({"message": message}))
+        self.send(text_data=json.dumps(event))
