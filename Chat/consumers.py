@@ -20,7 +20,8 @@ class ChatConsumer(WebsocketConsumer):
         self.send_to_chat_message(message)
         
     def fetch_message(self,data):
-        query = Message.last_message(self)
+        roomname = data['roomname']
+        query = Message.last_message(self, roomname)
         messge_json = self.message_serializer(query)
         content ={
             "message":eval(messge_json),
