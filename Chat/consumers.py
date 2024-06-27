@@ -16,7 +16,7 @@ class ChatConsumer(WebsocketConsumer):
         user = get_user_model().objects.filter(username=username).first()
         message_object = Message.objects.create(author=user,content=message)
         message = self.message_serializer(message_object)
-        message = eval(message)['content']
+        message = eval(message)
         self.send_to_chat_message(message)
         
     def fetch_message(self,data):
@@ -64,15 +64,18 @@ class ChatConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         # message = text_data_json.get("message",None)
         # username = text_data_json.get("username",None)
-        commad = text_data_json["commad"]
+        commad = text_data_json["command"]
         self.commends[commad](self,text_data_json)
 
     def send_to_chat_message(self,message):
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, {"type": "chat_message",
-                                   "message": message,
-                                   'command':'new_message'}
+                                   "content": message['content'],
+                                   'command':'new_message',
+                                    '__str__': message['__str__']
+            }
+                                
         )
 
     # Receive message from room group
