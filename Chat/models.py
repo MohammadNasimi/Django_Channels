@@ -19,10 +19,12 @@ class Chat (models.Model):
 class Message(models.Model):
     author = models.ForeignKey(user, on_delete=models.CASCADE)
     content = models.TextField()
+    related_chat = models.ForeignKey(Chat, on_delete=models.CASCADE, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    
-    def last_message(self):
-        return Message.objects.order_by("-timestamp").all()
+
+
+    def last_message(self, roomname):
+        return Message.objects.filter(related_chat__roomname=roomname).order_by('-timestamp')
 
     def __str__(self):
         return self.author.username
