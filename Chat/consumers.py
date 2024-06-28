@@ -30,6 +30,9 @@ class ChatConsumer(WebsocketConsumer):
             "command":"fetch_message"
         } 
         self.chat_message(content)
+    
+    def image(self,data):
+        self.send_to_chat_message(data)
      
     def message_serializer(self,query_set):
         if query_set.__class__.__name__ =='QuerySet':
@@ -53,7 +56,8 @@ class ChatConsumer(WebsocketConsumer):
         
     commends ={
         "new_message":new_message,
-        "fetch_message":fetch_message
+        "fetch_message":fetch_message,
+        'img': image
     }
 
     def disconnect(self, close_code):
@@ -71,11 +75,12 @@ class ChatConsumer(WebsocketConsumer):
         self.commends[commad](self,text_data_json)
 
     def send_to_chat_message(self,message):
+        command = message.get("command", None)
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, {"type": "chat_message",
                                    "content": message['content'],
-                                   'command':'new_message',
+                                    'command':(lambda command : "img" if( command == "img") else "new_message")(command),
                                     '__str__': message['__str__']
             }
                                 
